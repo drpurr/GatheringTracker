@@ -21,17 +21,25 @@
 
 ## Features
 
-- Supported on all versions of WoW
+- Supported on all versions of WoW, including WoW Forever
+- Session window with a summary panel and one line per item gathered this session
+  - Time, Looted gold, Herb value, Ore value (shown once you gather some) and Gold per hour
+  - Pause / Resume and Reset buttons; the minus button collapses the item list
+  - Drag the title bar to move it, right-click it for the Filter Menu
+  - Uses the game's own fonts, so it matches your UI
 - Display AH Price Data
   - Currently supports: TradeSkillMaster, Auctionator, and RECrystallize
 - Can track any item in the game
 - Can track any supported Currency
-- Customizable appearance
-- Filter options accessible through the on-screen button, minimap icon, or broker icon
+- Filter options accessible through the window title bar, minimap icon, or broker icon
 
 ## Commands:
 
 /gt or /gatheringtracker will open the addon configurations
+
+## Tests
+
+`lua5.1 tests/run_tests.lua` loads the addon against a mock WoW client and checks every element of the session window.
 
 ## Issues/Support:
 
