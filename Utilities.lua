@@ -172,7 +172,7 @@ end
 
 function GT:IsInGroup()
    -- Extention of IsInGroup to return false when in follower dungeons
-   if C_LFGInfo.IsInLFGFollowerDungeon() == true then
+   if C_LFGInfo and C_LFGInfo.IsInLFGFollowerDungeon and C_LFGInfo.IsInLFGFollowerDungeon() == true then
       return false
    end
    if select(3, GetInstanceInfo()) == 208 then
@@ -186,7 +186,7 @@ end
 function GT:DisplayVisibility()
    local instance = IsInInstance()
    local group = IsInGroup()
-   local follower = C_LFGInfo.IsInLFGFollowerDungeon()
+   local follower = C_LFGInfo and C_LFGInfo.IsInLFGFollowerDungeon and C_LFGInfo.IsInLFGFollowerDungeon()
    local delve = select(3, GetInstanceInfo()) == 208
 
    if GT.db.profile.General.combatHide and GT.combat then
@@ -263,14 +263,6 @@ function GT:GetGroupList()
    return plist
 end
 
-function GT:SumTable(table)
-   local sum = 0
-   for index, number in ipairs(table) do
-      sum = sum + number
-   end
-   return sum
-end
-
 ---This function adds or removes a single item from the GT.IDs table
 ---@param itemID integer Id of the item to take action on
 ---@param action boolean true to add an item to the IDs table, false to remove and item from the table
@@ -328,17 +320,6 @@ function GT:RebuildIDTables()
    end
 end
 
-function GT:CheckColumnSize(index, frame, itemID)
-   local width = frame:GetUnboundedStringWidth()
-   if itemID <= #GT.ItemData.Other.Other then
-      return
-   end
-   if GT.Display.ColumnSize[index] == nil or GT.Display.ColumnSize[index] < width then
-      GT.Display.ColumnSize[index] = width
-      return
-   end
-end
-
 function GT:GetItemPrice(itemID)
    if not GT.priceSources then
       return
@@ -359,72 +340,4 @@ function GT:GetItemPrice(itemID)
       price = (TSM_API.GetCustomPriceValue(GT.TSM, "i:" .. itemID) or 0) / 10000
    end
    return price
-end
-
-function GT:AnchorButtons()
-   -- 25 is the size of the filter button, so if any part of the button is off screen it will be moved
-   local UITop = UIParent:GetTop() - 25
-   local UILeft = UIParent:GetLeft() + 25
-   local backdropTop = GT.baseFrame.backdrop:GetTop()
-   local backdropLeft = GT.baseFrame.backdrop:GetLeft()
-
-   if backdropTop >= UITop and backdropLeft <= UILeft then
-      GT.Debug("Display Location", 1, "Top Left", UITop, UILeft, backdropTop, backdropLeft)
-      local offsetMulti = 0
-      if GT.db.profile.General.multiColumn and GT.db.profile.General.numRows <= #GT.Display.Order then
-         offsetMulti = GT.db.profile.General.numRows
-      elseif GT.Display.Order then
-         offsetMulti = #GT.Display.Order
-      end
-      local offsetHeight = 0
-      if GT.Display.Order and #GT.Display.Order > 0 then
-         offsetHeight = GT.Display.Frames[GT.Display.Order[1]]:GetHeight()
-      end
-      local offsetTotal = offsetMulti * offsetHeight
-      if GT.baseFrame.button and GT.baseFrame.controls then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 25, -1 * (offsetTotal + 25))
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT", 27, -1 * (offsetTotal + 25))
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT")
-      elseif GT.baseFrame.button then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 25, -1 * (offsetTotal + 25))
-      elseif GT.baseFrame.controls then
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT", 27, -1 * (offsetTotal + 25))
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT")
-      end
-   elseif backdropTop >= UITop then
-      GT.Debug("Display Location", 1, "Top", UITop, UILeft, backdropTop, backdropLeft)
-      if GT.baseFrame.button and GT.baseFrame.controls then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", -2, -26)
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT", -27, -53)
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT", -25, -25)
-      elseif GT.baseFrame.button then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", -2, -26)
-      elseif GT.baseFrame.controls then
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT", -27, -26)
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT", -25, -25)
-      end
-   elseif backdropLeft <= UILeft then
-      GT.Debug("Display Location", 1, "Left", UITop, UILeft, backdropTop, backdropLeft)
-      if GT.baseFrame.button and GT.baseFrame.controls then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 25, 0)
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT", 27, 0)
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT")
-      elseif GT.baseFrame.button then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 25, 0)
-      elseif GT.baseFrame.controls then
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT", 27, 0)
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT")
-      end
-   else
-      if GT.baseFrame.button and GT.baseFrame.controls then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", -2, 0)
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT")
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT")
-      elseif GT.baseFrame.button then
-         GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", -2, 0)
-      elseif GT.baseFrame.controls then
-         GT.baseFrame.controls.play:SetPoint("BOTTOMLEFT", GT.baseFrame.backdrop, "TOPLEFT")
-         GT.baseFrame.controls.reset:SetPoint("TOPLEFT", GT.baseFrame.controls.play, "TOPRIGHT")
-      end
-   end
 end

@@ -21,52 +21,26 @@ local unpack = unpack
 GT.defaults = {
    profile = {
       General = {
-         fixSettings = 0,
          enable = true,
-         unlock = false,
-         filtersButton = false,
-         buttonFade = false,
-         buttonAlpha = 0,
-         buttonDelay = 0.5,
+         lockWindow = false,
+         windowCollapsed = false,
+         windowScale = 1,
+         maxRows = 12,
          xPos = 200,
          yPos = -150,
          relativePoint = "TOPLEFT",
-         iconWidth = 27,
-         iconHeight = 27,
-         iconOpacity = 100,
-         textColor = { 1, 1, 1, 1 },
-         textSize = 20,
-         textFont = "Fira Mono Medium",
-         totalColor = { 0.098, 1, 0.078, 1 },
-         totalSize = 20,
-         totalFont = "Fira Mono Medium",
          includeBank = false,
          includeWarband = false,
          tsmPrice = 0,
-         ignoreAmount = 0,
-         perItemPrice = false,
          debugOption = 0,
-         rarityBorder = true,
-         multiColumn = false,
-         numRows = 1,
          instanceHide = false,
          groupHide = false,
          showDelve = false,
          showFollower = false,
          combatHide = false,
-         itemsPerHour = false,
-         goldPerHour = false,
-         collapseDisplay = false,
-         collapseTime = 2,
-         sessionItems = false,
-         sessionOnly = false,
-         itemTooltip = false,
+         itemTooltip = true,
          alertsEnable = false,
-         totalsRow = true,
          shortTimer = false,
-         sessionButtons = true,
-         buttonTheme = 1,
-         hideSession = false,
          accountCurrency = false,
       },
       Alerts = {
@@ -104,18 +78,6 @@ local generalOptions = {
                end,
                order = 1
             },
-            unlock = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Unlock Display",
-               width = 1.70,
-               get = function() return GT.db.profile.General.unlock end,
-               set = function(_, key)
-                  GT.db.profile.General.unlock = key
-                  GT:ToggleBaseLock(key)
-               end,
-               order = 2
-            },
             miniMap = {
                type = "toggle",
                dialogControl = "NW_CheckBox",
@@ -132,110 +94,6 @@ local generalOptions = {
                   GT:MinimapHandler(key)
                end,
                order = 3
-            },
-            buttonHeader = {
-               type = "header",
-               name = "Filter Button",
-               order = 10
-            },
-            filtersButton = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Filters Button",
-               desc = "If Enabled a button will be shown on screen that can be used to quickly change filters.\n" ..
-                   "|cff8080ffLeft Click|r shows filters menu.\n" ..
-                   "|cff8080ffRight Click|r clears all filters.\n" ..
-                   "|cff8080ffShift + Left Click|r resets Session Data.\n" ..
-                   "|cff8080ffShift + Right-Click|r to reset Alert Triggers",
-               width = 1.70,
-               get = function() return GT.db.profile.General.filtersButton end,
-               set = function(_, key)
-                  GT.db.profile.General.filtersButton = key
-                  GT:FiltersButton()
-               end,
-               order = 11
-            },
-            buttonFade = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Fade Out",
-               desc = "When Enabled the Filter Button will fade out, but will show up again on mouse over.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.buttonFade end,
-               set = function(_, key)
-                  GT.db.profile.General.buttonFade = key
-                  local alpha = GT.db.profile.General.buttonAlpha
-                  if not key then
-                     alpha = 100
-                  end
-                  GT:FiltersButtonFade()
-               end,
-               disabled = function()
-                  if GT.db.profile.General.filtersButton then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 12
-            },
-            buttonAlpha = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Fade Out Alpha",
-               desc = "0% is not visible, 100% is fully visible.\nDefault is 0",
-               min = 0,
-               max = 100,
-               step = 1,
-               width = 1.40,
-               get = function() return GT.db.profile.General.buttonAlpha or 0 end,
-               set = function(_, key)
-                  GT.db.profile.General.buttonAlpha = key
-                  GT:FiltersButtonFade(key)
-               end,
-               disabled = function()
-                  if GT.db.profile.General.filtersButton then
-                     if GT.db.profile.General.buttonFade then
-                        return false
-                     else
-                        return true
-                     end
-                  else
-                     return true
-                  end
-               end,
-               order = 13
-            },
-            spacer2 = {
-               type = "description",
-               name = " ",
-               width = 0.3,
-               order = 14
-            },
-            buttonDelay = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Fade Out Delay",
-               desc = "This configures how long after the mouse leaves the button before it fades out.\n" ..
-                   "Default is 0.5.",
-               min = 0,
-               max = 1,
-               step = 0.02,
-               width = 1.40,
-               get = function() return GT.db.profile.General.buttonDelay or 0 end,
-               set = function(_, key) GT.db.profile.General.buttonDelay = key end,
-               disabled = function()
-                  if GT.db.profile.General.filtersButton then
-                     if GT.db.profile.General.buttonFade then
-                        return false
-                     else
-                        return true
-                     end
-                  else
-                     return true
-                  end
-               end,
-               order = 15
             },
             header1 = {
                type = "header",
@@ -281,20 +139,12 @@ local generalOptions = {
                   GT:SetDisplayState()
                end,
                disabled = function()
-                  if GT.db.profile.General.instanceHide or GT.db.profile.General.groupHide then
-                     return false
-                  else
-                     return true
-                  end
+                  return not (GT.db.profile.General.instanceHide or GT.db.profile.General.groupHide)
                end,
                hidden = function()
-                  if GT.gameVersion == "retail" then
-                     return false
-                  else
-                     return true
-                  end
+                  return GT.gameVersion ~= "retail"
                end,
-               order = 120
+               order = 130
             },
             showFollower = {
                type = "toggle",
@@ -308,20 +158,12 @@ local generalOptions = {
                   GT:SetDisplayState()
                end,
                disabled = function()
-                  if GT.db.profile.General.instanceHide or GT.db.profile.General.groupHide then
-                     return false
-                  else
-                     return true
-                  end
+                  return not (GT.db.profile.General.instanceHide or GT.db.profile.General.groupHide)
                end,
                hidden = function()
-                  if GT.gameVersion == "retail" then
-                     return false
-                  else
-                     return true
-                  end
+                  return GT.gameVersion ~= "retail"
                end,
-               order = 130
+               order = 135
             },
             combatHide = {
                type = "toggle",
@@ -336,118 +178,14 @@ local generalOptions = {
                   if key then
                      GT:RegisterEvent("PLAYER_REGEN_DISABLED")
                      GT:RegisterEvent("PLAYER_REGEN_ENABLED")
+                  else
+                     GT:UnregisterEvent("PLAYER_REGEN_DISABLED")
+                     GT:UnregisterEvent("PLAYER_REGEN_ENABLED")
+                     GT.combat = false
+                     GT:SetDisplayState()
                   end
                end,
                order = 140
-            },
-            header2 = {
-               type = "header",
-               name = "Collapse Display",
-               order = 200
-            },
-            collapseDisplay = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Collapse Display",
-               desc = "When selected the display will be collapsed to only display the total rows.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.collapseDisplay end,
-               set = function(_, key)
-                  GT.db.profile.General.collapseDisplay = key
-                  GT:CollapseManager(key)
-               end,
-               disabled = function()
-                  if GT.db.profile.General.totalsRow then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 210
-            },
-            collapseTime = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Collapse Delay",
-               desc = "This configures how long after the mouse leaves the display area before it clopases to the total rows.\nDefault is 2.",
-               min = 0,
-               max = 10,
-               step = 0.5,
-               width = 1.40,
-               get = function() return GT.db.profile.General.collapseTime or 2 end,
-               set = function(_, key) GT.db.profile.General.collapseTime = key end,
-               disabled = function()
-                  if GT.db.profile.General.collapseDisplay then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 215
-            },
-            header3 = {
-               type = "header",
-               name = "Other",
-               order = 300
-            },
-            totalsRow = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display Totals Row",
-               desc = "If selected the totals row will be displayed.\n\n" ..
-                   "|cffff0000When disabled the following options will also be disabled:|r\n" ..
-                   " - Collapse Delay\n" ..
-                   " - Totals Color/Size/Font\n" ..
-                   " - Total Items Alerts",
-               width = 1.70,
-               get = function() return GT.db.profile.General.totalsRow end,
-               set = function(_, key)
-                  GT.db.profile.General.totalsRow = key
-                  if not key then
-                     GT.db.profile.General.collapseDisplay = key
-                     GT:CollapseManager(key)
-                  end
-                  GT:RebuildDisplay("Display Totals Row Changed")
-               end,
-               order = 320
-            },
-            allFiltered = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display All Filtered Items",
-               desc =
-                   "When selected all selected filtered items will be displayed, including those with 0 count.\n\n" ..
-                   "Not recommended to be used with a large number of enabled filters as it will cause significant lag.\n\n" ..
-                   "|cffff0000Automatically disables with over 500 filters selected.|r",
-               width = 1.70,
-               get = function() return GT.db.profile.General.allFiltered end,
-               set = function(_, key)
-                  GT.db.profile.General.allFiltered = key
-                  GT:InventoryUpdate("Toggle Display All", false)
-               end,
-               disabled = function()
-                  if #GT.IDs > 500 then
-                     return true
-                  else
-                     return false
-                  end
-               end,
-               order = 321
-            },
-            itemTooltip = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display Item Tooltip",
-               desc =
-                   "When selected the item tooltip will be displayed when mousing over an items icon.\n\n" ..
-                   "Interacts poorly with the Collapse Display option, not recommended to use both.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.itemTooltip end,
-               set = function(_, key)
-                  GT.db.profile.General.itemTooltip = key
-                  GT:RebuildDisplay("Item Tooltip Option Changed")
-               end,
-               order = 322
             },
          },
       },
@@ -456,9 +194,84 @@ local generalOptions = {
          name = "Display",
          order = 2,
          args = {
-            header3 = {
+            header1 = {
                type = "header",
-               name = "Display Options",
+               name = "Window",
+               order = 100
+            },
+            lockWindow = {
+               type = "toggle",
+               dialogControl = "NW_CheckBox",
+               name = "Lock Window",
+               desc = "When selected the window can no longer be moved by dragging its title bar.",
+               width = 1.70,
+               get = function() return GT.db.profile.General.lockWindow end,
+               set = function(_, key)
+                  GT.db.profile.General.lockWindow = key
+               end,
+               order = 101
+            },
+            itemTooltip = {
+               type = "toggle",
+               dialogControl = "NW_CheckBox",
+               name = "Item Tooltips",
+               desc = "When selected the item tooltip is shown when the mouse is over an item row.",
+               width = 1.70,
+               get = function() return GT.db.profile.General.itemTooltip end,
+               set = function(_, key)
+                  GT.db.profile.General.itemTooltip = key
+                  GT:RebuildDisplay("Item Tooltip Option Changed")
+               end,
+               order = 102
+            },
+            windowScale = {
+               type = "range",
+               dialogControl = "NW_Slider",
+               name = "Window Scale",
+               desc = "Size of the whole window.\nDefault is 1.",
+               min = 0.5,
+               max = 2,
+               step = 0.05,
+               width = 1.70,
+               get = function() return GT.db.profile.General.windowScale or 1 end,
+               set = function(_, key)
+                  GT.db.profile.General.windowScale = key
+                  GT.Window:ApplyScale()
+               end,
+               order = 103
+            },
+            maxRows = {
+               type = "range",
+               dialogControl = "NW_Slider",
+               name = "Max Item Rows",
+               desc = "The most item rows shown at once. Items gathered longest ago are summarized as \"and N more\".\nDefault is 12.",
+               min = 3,
+               max = 40,
+               step = 1,
+               width = 1.70,
+               get = function() return GT.db.profile.General.maxRows or 12 end,
+               set = function(_, key)
+                  GT.db.profile.General.maxRows = key
+                  GT:RebuildDisplay("Max Rows Changed")
+               end,
+               order = 104
+            },
+            resetPosition = {
+               type = "execute",
+               name = "Reset Window Position",
+               width = 1.70,
+               func = function()
+                  GT.db.profile.General.xPos = GT.defaults.profile.General.xPos
+                  GT.db.profile.General.yPos = GT.defaults.profile.General.yPos
+                  GT.db.profile.General.relativePoint = GT.defaults.profile.General.relativePoint
+                  GT.db.profile.General.windowRelativePoint = nil
+                  GT.Window:ApplyPosition()
+               end,
+               order = 105
+            },
+            header2 = {
+               type = "header",
+               name = "Values",
                order = 200
             },
             tsmPrice = {
@@ -466,6 +279,7 @@ local generalOptions = {
                dialogControl = "NW_Dropdown",
                name = "Price Source",
                desc = "Select the desired price source, or none to disable price information.\n" ..
+                   "Item, Herb and Ore values need a price source.\n" ..
                    "|cffff0000Supported addon required.|r\n\n" ..
                    "Supports:\n" ..
                    "TradeSkillMaster\n" ..
@@ -498,63 +312,18 @@ local generalOptions = {
                get = function() return GT.db.profile.General.tsmPrice end,
                set = function(_, key)
                   GT.db.profile.General.tsmPrice = key
-                  if GT.db.profile.General.tsmPrice == 0 then
-                     GT.db.profile.General.perItemPrice = false
-                     GT.db.profile.General.goldPerHour = false
-                  end
                   GT:RebuildDisplay("TSM Price Source Option Changed")
                end,
                disabled = function()
-                  if not GT.priceSources then
-                     return true
-                  else
-                     return false
-                  end
+                  return not GT.priceSources
                end,
                order = 201
-            },
-            perItemPrice = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display Per Item Price",
-               desc = "If selected the price for 1 of each item will be displayed.\n" ..
-                   "Price Source is required for this option to be enabled.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.perItemPrice end,
-               set = function(_, key)
-                  GT.db.profile.General.perItemPrice = key
-                  GT:RebuildDisplay("Display Per Item Price Changed")
-               end,
-               disabled = function()
-                  if not GT.priceSources or GT.db.profile.General.tsmPrice == 0 then
-                     return true
-                  else
-                     return false
-                  end
-               end,
-               order = 202
-            },
-            ignoreAmount = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Ignore Amount",
-               desc = "Use this option to ignore a specific amount, this value will be subtracted from the totals.",
-               min = 0,
-               max = 100,
-               step = 1,
-               width = 1.70,
-               get = function() return GT.db.profile.General.ignoreAmount or 0 end,
-               set = function(_, key)
-                  GT.db.profile.General.ignoreAmount = key
-                  GT:InventoryUpdate("Ignore Amount Changed", true)
-               end,
-               order = 203
             },
             includeBank = {
                type = "toggle",
                dialogControl = "NW_CheckBox",
                name = "Include Bank",
-               desc = "If selected displayed values will include items in your bank.",
+               desc = "If selected items moved to your bank still count towards the session.",
                width = 1.70,
                get = function() return GT.db.profile.General.includeBank end,
                set = function(_, key)
@@ -567,7 +336,7 @@ local generalOptions = {
                type = "toggle",
                dialogControl = "NW_CheckBox",
                name = "Include Warband Bank",
-               desc = "If selected displayed values will include items in your Warband bank.",
+               desc = "If selected items moved to your Warband bank still count towards the session.",
                width = 1.70,
                get = function() return GT.db.profile.General.includeWarband end,
                set = function(_, key)
@@ -575,11 +344,7 @@ local generalOptions = {
                   GT:InventoryUpdate("Include Warband", true)
                end,
                hidden = function()
-                  if GT.gameVersion == "retail" then
-                     return false
-                  else
-                     return true
-                  end
+                  return GT.gameVersion ~= "retail"
                end,
                order = 205
             },
@@ -596,148 +361,27 @@ local generalOptions = {
                   GT:InventoryUpdate("account Currency", true)
                end,
                hidden = function()
-                  if GT.gameVersion == "retail" then
-                     return false
-                  else
-                     return true
-                  end
+                  return GT.gameVersion ~= "retail"
                end,
                order = 206
             },
-            header2 = {
+            header3 = {
                type = "header",
-               name = "Session Display Options",
+               name = "Session",
                order = 250
-            },
-            sessionItems = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display Session Item Counts",
-               desc = "If selected session item counts will be displayed in the column to the right of the item count.\n" ..
-                   "Price data (if enabled) is not displayed for session data.\n\n",
-               width = 1.70,
-               get = function() return GT.db.profile.General.sessionItems end,
-               set = function(_, key)
-                  GT.db.profile.General.sessionItems = key
-                  GT:RebuildDisplay("Display Session Item Counts Changed")
-                  GT.Timer:ToggleControls()
-               end,
-               order = 251
-            },
-            sessionOnly = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Only Display Session Data",
-               desc = "If selected only the session data will be displayed and selected items will only display if collected during the session.\n" ..
-                   "Price data (if enabled) is displayed for the session data.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.sessionOnly end,
-               set = function(_, key)
-                  GT.db.profile.General.sessionOnly = key
-                  GT:RebuildDisplay("Only Display Session Data Changed")
-               end,
-               disabled = function()
-                  if not GT.db.profile.General.sessionItems then
-                     return true
-                  else
-                     return false
-                  end
-               end,
-               order = 252
-            },
-            itemsPerHour = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display Items Per Hour",
-               desc = "If selected an estimated items gathered per hour will be displayed.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.itemsPerHour end,
-               set = function(_, key)
-                  GT.db.profile.General.itemsPerHour = key
-                  GT:RebuildDisplay("Items Per Hour Changed")
-                  GT.Timer:ToggleControls()
-               end,
-               order = 255
-            },
-            goldPerHour = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Display Gold Per Hour",
-               desc = "If selected an estimated gold per hour will be displayed based on the value of items gathered.\n" ..
-                   "Price Source is required for this option to be enabled.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.goldPerHour end,
-               set = function(_, key)
-                  GT.db.profile.General.goldPerHour = key
-                  GT:RebuildDisplay("Gold Per Hour Changed")
-                  GT.Timer:ToggleControls()
-               end,
-               disabled = function()
-                  if not GT.priceSources or GT.db.profile.General.tsmPrice == 0 then
-                     return true
-                  else
-                     return false
-                  end
-               end,
-               order = 256
             },
             shortTimer = {
                type = "toggle",
                dialogControl = "NW_CheckBox",
                name = "Short Session Timer",
-               desc =
-               "When the Session Timer is displayed it will only display hours and minutes greater than 0.",
+               desc = "Only show hours and minutes in the session timer once they are greater than 0.",
                width = 1.70,
                get = function() return GT.db.profile.General.shortTimer end,
                set = function(_, key)
                   GT.db.profile.General.shortTimer = key
+                  GT:RebuildDisplay("Short Timer Changed")
                end,
-               order = 257
-            },
-            hideSession = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Hide Session Displays",
-               desc = "When Selected the following displays will not be shown:\n" ..
-                   "Session Item Counts\n" ..
-                   "Items Per Hour\n" ..
-                   "Gold Per Hour\n\n" ..
-                   "If Only Display Session Data is selected, that will continue to be displayed.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.hideSession end,
-               set = function(_, key)
-                  GT.db.profile.General.hideSession = key
-                  GT:RebuildDisplay("Toggle Hide Session Displays")
-                  GT.Timer:ToggleControls()
-               end,
-               order = 258
-            },
-            sessionButtons = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Session Controls",
-               desc = "If selected start/reset/pause buttons will be displayed above the normal display\n" ..
-                   "These buttons control the session timer, even if the timer isn't displayed.\n" ..
-                   "The session timer is used for calculating Per Hour displays.\n\n" ..
-                   "|cffff0000Only displayed when one of the following is enabled:|r\n" ..
-                   "Session Timer\n" ..
-                   "Display Items Per Hour" ..
-                   "Display Gold Per Hour",
-               width = 1.70,
-               get = function() return GT.db.profile.General.sessionButtons end,
-               set = function(_, key)
-                  GT.db.profile.General.sessionButtons = key
-                  GT.Timer:ToggleControls()
-               end,
-               disabled = function()
-                  if GT.db.profile.General.itemsPerHour or GT.db.profile.General.goldPerHour or
-                      GT.db.profile.Filters[3] or GT.db.profile.General.sessionItems then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 259
+               order = 251
             },
             perHourReset = {
                type = "execute",
@@ -747,374 +391,9 @@ local generalOptions = {
                func = function()
                   GT:ResetSession()
                end,
-               disabled = function()
-                  if GT.db.profile.General.itemsPerHour or GT.db.profile.General.goldPerHour or
-                      GT.db.profile.General.sessionItems then
-                     return false
-                  else
-                     return true
-                  end
-               end,
                order = 260
             },
-            header4 = {
-               type = "header",
-               name = "Columns",
-               order = 300
-            },
-            multiColumn = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Multiple Columns",
-               desc = "Enables the display to use multiple columns.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.multiColumn end,
-               set = function(_, key)
-                  GT.db.profile.General.multiColumn = key
-                  GT:AllignRows()
-                  GT:AllignColumns()
-               end,
-               order = 301
-            },
-            numRows = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Max Rows Per Column",
-               desc = "Set the maximum number of rows to be displayed per column.",
-               min = 1,
-               max = 50,
-               step = 1,
-               width = 1.70,
-               get = function() return GT.db.profile.General.numRows or 1 end,
-               set = function(_, key)
-                  GT.db.profile.General.numRows = key
-                  if not GT.db.profile.General.collapseDisplay then
-                     GT:AllignRows()
-                     GT:AllignColumns()
-                  end
-               end,
-               disabled = function()
-                  if not GT.db.profile.General.multiColumn then
-                     return true
-                  else
-                     return false
-                  end
-               end,
-               order = 302
-            },
          }
-      },
-      Style = {
-         type = "group",
-         name = "Style",
-         order = 3,
-         args = {
-            header1 = {
-               type = "header",
-               name = "Buttons",
-               order = 300
-            },
-            buttonTheme = {
-               type = "select",
-               dialogControl = "NW_Dropdown",
-               name = "Button Style",
-               desc = "The theme used for the Filter and Session Buttons.",
-               width = 1.70,
-               values = {
-                  [1] = "Blizzard",
-                  [2] = "Modern",
-                  [3] = "ElvUI",
-                  [4] = "GW2 UI"
-               },
-               get = function() return GT.db.profile.General.buttonTheme end,
-               set = function(_, key)
-                  GT.db.profile.General.buttonTheme = key
-                  if GT.baseFrame.button then
-                     GT.baseFrame.button:Hide()
-                     GT.baseFrame.button = nil
-                     GT:FiltersButton(true)
-                  end
-                  if GT.baseFrame.controls then
-                     GT.Timer:HideControls()
-                     GT.baseFrame.controls = nil
-                     GT.Timer:ToggleControls()
-                  end
-               end,
-               order = 302
-            },
-            header5 = {
-               type = "header",
-               name = "Icon",
-               order = 400
-            },
-            iconSize = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Icon Size",
-               min = 10,
-               max = 100,
-               step = 1,
-               width = 1.70,
-               get = function() return GT.db.profile.General.iconWidth or 1 end,
-               set = function(_, key)
-                  GT.db.profile.General.iconWidth = key
-                  GT.db.profile.General.iconHeight = key
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     itemFrame.icon:SetWidth(GT.db.profile.General.iconWidth)
-                     GT:SetDisplayFrameWidth()
-
-                     itemFrame.icon:SetHeight(GT.db.profile.General.iconHeight)
-
-                     local frameHeight = GT.db.profile.General.iconHeight + 3
-
-                     if frameHeight < itemFrame.text[1]:GetStringHeight() then
-                        itemFrame:SetHeight(itemFrame.text[1]:GetStringHeight() + 3)
-                     else
-                        itemFrame:SetHeight(frameHeight)
-                     end
-                  end
-               end,
-               order = 401
-            },
-            iconOpacity = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Icon Opacity",
-               min = 0,
-               max = 100,
-               step = 1,
-               width = 1.70,
-               get = function() return GT.db.profile.General.iconOpacity or 100 end,
-               set = function(_, key)
-                  GT.db.profile.General.iconOpacity = key
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     itemFrame.icon:SetAlpha(GT.db.profile.General.iconOpacity / 100)
-
-                     if itemFrame.iconRarity then
-                        itemFrame.iconRarity:SetAlpha(GT.db.profile.General.iconOpacity / 100)
-                     end
-
-                     if itemFrame.iconQuality then
-                        itemFrame.iconQuality:SetAlpha(GT.db.profile.General.iconOpacity / 100)
-                     end
-                  end
-               end,
-               order = 403
-            },
-            rarityBorder = {
-               type = "toggle",
-               dialogControl = "NW_CheckBox",
-               name = "Show Rarity Border",
-               desc = "Will display a colored border based on item rarity.",
-               width = 1.70,
-               get = function() return GT.db.profile.General.rarityBorder end,
-               set = function(_, key)
-                  GT.db.profile.General.rarityBorder = key
-
-                  if key then
-                     for itemID, itemFrame in pairs(GT.Display.Frames) do
-                        if itemID > 2 and itemID < 9999999998 then
-                           local iconRarity = C_Item.GetItemQualityByID(itemID)
-                           GT:DisplayFrameRarity(itemFrame, iconRarity)
-                        end
-                     end
-                  else
-                     for itemID, itemFrame in pairs(GT.Display.Frames) do
-                        if itemFrame.iconRarity then
-                           itemFrame.iconRarity:SetVertexColor(1, 1, 1, 1)
-                           GT.Pools.texturePool:Release(itemFrame.iconRarity)
-                           itemFrame.iconRarity = nil
-                        end
-                     end
-                  end
-               end,
-               order = 404
-            },
-            header6 = {
-               type = "header",
-               name = "Text",
-               order = 500
-            },
-            textColor = {
-               type = "color",
-               name = "Text Color",
-               hasAlpha = true,
-               get = function()
-                  local c = GT.db.profile.General.textColor
-                  return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1
-               end,
-               set = function(_, r, g, b, a)
-                  GT.db.profile.General.textColor = { r, g, b, a }
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     if itemID < 9999999998 then
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           textFrame:SetVertexColor(unpack(GT.db.profile.General.textColor))
-                        end
-                     end
-                  end
-               end,
-               order = 501
-            },
-            textSize = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Text Size",
-               min = 10,
-               max = 70,
-               step = 1,
-               width = 1.20,
-               get = function() return GT.db.profile.General.textSize or 1 end,
-               set = function(_, key)
-                  if key < GT.db.profile.General.textSize then
-                     GT.Display.ColumnSize = {}
-                  end
-                  GT.db.profile.General.textSize = key
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     if itemID < 9999999998 then
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           textFrame:SetFont(media:Fetch("font", GT.db.profile.General.textFont), GT.db.profile.General.textSize, "OUTLINE")
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-
-                        local frameHeight = math.max(GT.db.profile.General.iconHeight, key)
-                        itemFrame:SetHeight(frameHeight + 3)
-                     else
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-                     end
-                  end
-                  GT:AllignColumns()
-               end,
-               order = 502
-            },
-            textFont = {
-               type = "select",
-               dialogControl = 'NW_Font',
-               name = "Text Font",
-               width = 1.20,
-               values = media:HashTable("font"),
-               get = function() return GT.db.profile.General.textFont end,
-               set = function(_, key)
-                  GT.db.profile.General.textFont = key
-                  GT.Display.ColumnSize = {}
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     if itemID < 9999999998 then
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           textFrame:SetFont(media:Fetch("font", GT.db.profile.General.textFont), GT.db.profile.General.textSize, "OUTLINE")
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-                     else
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-                     end
-                  end
-                  GT:AllignColumns()
-               end,
-               order = 503
-            },
-            totalColor = {
-               type = "color",
-               name = "Total Color",
-               hasAlpha = true,
-               get = function()
-                  local c = GT.db.profile.General.totalColor
-                  return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1
-               end,
-               set = function(_, r, g, b, a)
-                  GT.db.profile.General.totalColor = { r, g, b, a }
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     if itemID >= 9999999998 then
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           textFrame:SetVertexColor(unpack(GT.db.profile.General.totalColor))
-                        end
-                     end
-                  end
-               end,
-               disabled = function()
-                  if GT.db.profile.General.totalsRow then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 504
-            },
-            totalSize = {
-               type = "range",
-               dialogControl = "NW_Slider",
-               name = "Total Size",
-               min = 10,
-               max = 70,
-               step = 1,
-               width = 1.20,
-               get = function() return GT.db.profile.General.totalSize or 1 end,
-               set = function(_, key)
-                  if key < GT.db.profile.General.totalSize then
-                     GT.Display.ColumnSize = {}
-                  end
-                  GT.db.profile.General.totalSize = key
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     if itemID >= 9999999998 then
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           textFrame:SetFont(media:Fetch("font", GT.db.profile.General.totalFont), GT.db.profile.General.totalSize, "OUTLINE")
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-
-                        local frameHeight = math.max(GT.db.profile.General.iconHeight, key)
-                        itemFrame:SetHeight(frameHeight + 3)
-                     else
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-                     end
-                  end
-                  GT:AllignColumns()
-               end,
-               disabled = function()
-                  if GT.db.profile.General.totalsRow then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 505
-            },
-            totalFont = {
-               type = "select",
-               dialogControl = 'NW_Font',
-               name = "Total Font",
-               width = 1.20,
-               values = media:HashTable("font"),
-               get = function() return GT.db.profile.General.totalFont end,
-               set = function(_, key)
-                  GT.db.profile.General.totalFont = key
-                  GT.Display.ColumnSize = {}
-                  for itemID, itemFrame in pairs(GT.Display.Frames) do
-                     if itemID >= 9999999998 then
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           textFrame:SetFont(media:Fetch("font", GT.db.profile.General.totalFont), GT.db.profile.General.totalSize, "OUTLINE")
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-                     else
-                        for textIndex, textFrame in ipairs(itemFrame.text) do
-                           GT:CheckColumnSize(textIndex, textFrame, itemID)
-                        end
-                     end
-                  end
-                  GT:AllignColumns()
-               end,
-               disabled = function()
-                  if GT.db.profile.General.totalsRow then
-                     return false
-                  else
-                     return true
-                  end
-               end,
-               order = 506
-            },
-         },
       },
       Alerts = {
          type = "group",
@@ -1873,9 +1152,7 @@ for expansion, expansionData in pairs(GT.ItemData) do
                   return name
                end,
                image = function()
-                  if itemData.id <= #GT.ItemData.Other.Other then
-                     return itemData.icon
-                  elseif expansion == "Currency" then
+                  if expansion == "Currency" then
                      local currency = C_CurrencyInfo.GetBasicCurrencyInfo(itemData.id)
                      if currency and currency.icon then
                         return currency.icon
@@ -1893,11 +1170,7 @@ for expansion, expansionData in pairs(GT.ItemData) do
                   local borderColor = {}
                   local overlay = {}
 
-                  if tonumber(itemData.id) <= #GT.ItemData.Other.Other then
-                     border = { "Interface\\Common\\WhiteIconFrame", "texture" }
-                     borderColor = { 1, 1, 1, 0.8 }
-                     overlay = nil
-                  else
+                  do
                      if rarity <= 1 then
                         border = { "Interface\\Common\\WhiteIconFrame", "texture" }
                      else
@@ -1939,9 +1212,6 @@ for expansion, expansionData in pairs(GT.ItemData) do
 
                   GT:UpdateIDTable(itemData.id, key, expansion)
                   GT:RemoveItemData(key, itemData.id)
-                  if itemData.id == 3 then
-                     GT.Timer:ToggleControls()
-                  end
                   GT:InventoryUpdate("Filters " .. expansion .. " " .. category .. " " .. itemData.name .. " option clicked", true)
                end,
                width = 1.2,
@@ -2008,11 +1278,7 @@ function GT:CreateCustomFilterItem(id, enable)
                local borderColor = {}
                local overlay = {}
 
-               if id <= #GT.ItemData.Other.Other then
-                  border = { "Interface\\Common\\WhiteIconFrame", "texture" }
-                  borderColor = { 1, 1, 1, 0.8 }
-                  overlay = nil
-               else
+               do
                   local rarity = C_Item.GetItemQualityByID(id) or 1
                   if rarity <= 1 then
                      border = { "Interface\\Common\\WhiteIconFrame", "texture" }
@@ -2065,9 +1331,23 @@ function GatheringTracker_OnAddonCompartmentClick(addonName, button)
    end
 end
 
+-- Options that belonged to the old icon display, removed in the session window redesign
+local removedGeneralOptions = {
+   "fixSettings", "unlock", "filtersButton", "buttonFade", "buttonAlpha", "buttonDelay",
+   "iconWidth", "iconHeight", "iconOpacity", "textColor", "textSize", "textFont",
+   "totalColor", "totalSize", "totalFont", "ignoreAmount", "perItemPrice", "rarityBorder",
+   "multiColumn", "numRows", "itemsPerHour", "goldPerHour", "collapseDisplay", "collapseTime",
+   "sessionItems", "sessionOnly", "totalsRow", "sessionButtons", "buttonTheme", "hideSession",
+   "allFiltered",
+}
+
 local function UpdateChangedorRemovedSavedVariables()
-   if GT.db.profile.General.fixSettings then
-      GT.db.profile.General.fixSettings = nil
+   for _, option in ipairs(removedGeneralOptions) do
+      GT.db.profile.General[option] = nil
+   end
+   -- Current Gold, Open Bag Space and Session Timer used to be filters; the window always shows them now
+   for id = 1, 3 do
+      GT.db.profile.Filters[id] = nil
    end
    if GT.db.profile.Notifications then
       GT.db.profile.Notifications = nil
@@ -2098,20 +1378,14 @@ function GT:RefreshConfig(event, db, profile)
       UpdateChangedorRemovedSavedVariables()
    end
 
-   GT.baseFrame.backdrop:ClearAllPoints()
-   GT.baseFrame.backdrop:SetPoint(
-      GT.db.profile.General.relativePoint,
-      UIParent,
-      GT.db.profile.General.relativePoint,
-      GT.db.profile.General.xPos,
-      GT.db.profile.General.yPos
-   )
+   GT.Window:ApplyPosition()
+   GT.Window:ApplyScale()
    GT.AlertSystem.AllowAlertEffects = false
 
    GT.AlertSystem:RemoveAllItems("Refresh Config")
    GT:RebuildIDTables()
    GT:ClearDisplay()
-   GT:FiltersButton()
+   GT:SetDisplayState()
    GT:InventoryUpdate("Refresh Config", true)
    GT:CreateCustomFilterOptions()
    GT:InitializeAlertOptions("Refresh Config")
@@ -2168,16 +1442,11 @@ function GT:OnInitialize()
    GT.db.RegisterCallback(GT, "OnProfileCopied", "RefreshConfig")
    GT.db.RegisterCallback(GT, "OnProfileReset", "RefreshConfig")
 
-   if GT.db.profile.General.unlock then
-      GT.db.profile.General.unlock = false
-   end
-
    ValidatePriceSourceOption()
 
    --if TSM is not loaded set tsmPrice Option to none.
    if not GT.priceSources then
       GT.db.profile.General.tsmPrice = 0
-      GT.db.profile.General.perItemPrice = false
    elseif GT.priceSources["TradeSkillMaster"] then
       GT:SetTSMPriceSource()
    end
@@ -2210,7 +1479,6 @@ function GT:OnInitialize()
    GT.Player = UnitName("player")
 
    --register font and sound with LSM
-   media:Register("font", "Fira Mono Medium", "Interface\\Addons\\GatheringTracker\\Media\\Fonts\\FiraMono-Medium.ttf", media.LOCALE_BIT_western + media.LOCALE_BIT_ruRU)
    media:Register("sound", "Auction Window Open", 567482)
    media:Register("sound", "Auction Window Close", 567499)
    media:Register("sound", "Auto Quest Complete", 567476)
@@ -2233,9 +1501,6 @@ function GT:OnInitialize()
    GT:InitializeBroker()
    GT:RebuildIDTables()
    GT:CreateBaseFrame()
-   GT:FiltersButton()
-   GT.Timer:ToggleControls()
-   GT:InitializePools()
 
    GT.AlertSystem:CreateAlertFrames()
    GT:InitializeAlertOptions("OnInitialize")

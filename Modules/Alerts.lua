@@ -246,9 +246,12 @@ function GT.AlertSystem:TriggerEffects(alert, alertSettings, itemID, triggeredVa
    if alert:GetAlertType() == "Audio" then
       PlaySoundFile(tostring(media:Fetch("sound", alertSettings.tiggerSound)), "master")
    elseif alert:GetAlertType() == "Highlight" then
-      GT.Display.Frames[itemID].highlight:SetTexture(GT.HighlightTextures[alertSettings.highlightBorder].atlas)
-      GT.Display.Frames[itemID].highlight:SetVertexColor(unpack(alertSettings.highlightColor))
-      GT.Display.Frames[itemID].highlight:Show()
+      local frame = GT.Display.Frames[itemID]
+      if frame and frame.highlight then
+         frame.highlight:SetTexture(GT.HighlightTextures[alertSettings.highlightBorder].atlas)
+         frame.highlight:SetVertexColor(unpack(alertSettings.highlightColor))
+         frame.highlight:Show()
+      end
    elseif alert:GetAlertType() == "Screen Flash" then
       GT.Display.Alerts.ScreenFlash.texture:SetVertexColor(unpack(alertSettings.flashColor))
       GT.Display.Alerts.ScreenFlash:SetDuration(alertSettings.flashDuration or 3)
@@ -282,7 +285,10 @@ function GT.AlertSystem:ClearAlert(alert)
    if alert.itemID == 2 then
       itemID = 9999999998
    end
-   GT.Display.Frames[itemID].highlight:Hide()
+   local frame = GT.Display.Frames[itemID]
+   if frame and frame.highlight then
+      frame.highlight:Hide()
+   end
 end
 
 function GT.AlertSystem:ResetAlerts()

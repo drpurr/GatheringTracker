@@ -1,4 +1,4 @@
-## Interface: 11509, 16001, 20506, 40402, 50504, 120100
+## Interface: 11509, 16001, 20506, 40402, 50504, 120100, 120105
 ## Title: Gathering Tracker
 ## Notes: Addon for tracking gathered items, supports solo players and groups
 ## Author: Noshei
@@ -25,15 +25,13 @@
 embeds.xml
 templates.xml
 GatheringTracker.lua
-DisplayCreation.lua
 Utilities.lua
 
-Modules\Skins.lua
-Modules\DisplayCollapse.lua
+Modules\Timer.lua
+Modules\Window.lua
 Modules\FilterButton.lua
 Modules\Alerts.lua
 Modules\AlertsMenu.lua
-Modules\Timer.lua
 Modules\Analytics.lua
 
 Constants.lua

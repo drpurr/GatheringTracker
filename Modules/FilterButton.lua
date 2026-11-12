@@ -9,110 +9,6 @@ local table = table
 local tonumber = tonumber
 local tostring = tostring
 
-function GT:ToggleFilterButton(show)
-   if show then
-      GT.Debug("Show Filters Button", 1)
-      GT.baseFrame.button:Show()
-      if GT.baseFrame.button.mouseOver then
-         GT.baseFrame.button.mouseOver:Show()
-      end
-      GT:FiltersButtonFade()
-      return
-   end
-
-   if not show then
-      GT.Debug("Hide Filters Button", 1)
-      if GT.baseFrame.button then
-         GT.baseFrame.button:Hide()
-         if GT.baseFrame.button.mouseOver then
-            GT.baseFrame.button.mouseOver:Hide()
-         end
-      end
-      return
-   end
-end
-
-local function ButtonOnEnter(self, motion)
-   if motion then
-      GT.baseFrame.button:SetAlpha(1)
-      GT:wait(nil, "FiltersButtonFade")
-   end
-end
-
-local function ButtonOnLeave(self, motion)
-   if motion then
-      GT:wait(GT.db.profile.General.buttonDelay, "FiltersButtonFade", GT.db.profile.General.buttonAlpha)
-   end
-end
-
-function GT:FiltersButton(reMakeButton)
-   if not GT.db.profile.General.filtersButton then
-      GT:ToggleFilterButton(false)
-      return
-   end
-   if not GT.Enabled then
-      GT:ToggleFilterButton(false)
-      return
-   end
-   if GT.baseFrame.button and not reMakeButton then
-      GT:ToggleFilterButton(true)
-      return
-   end
-
-   GT.Debug("Create Filters Button", 1)
-   local filterButton = GT.Skins:CreateButtonSkinned("GT_baseFrame_filtersButton", GT.baseFrame.frame)
-   filterButton:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", -2, 0)
-   filterButton:SetWidth(25)
-   filterButton:SetHeight(25)
-   filterButton:SetText("F")
-   filterButton:EnableMouse(true)
-   filterButton:RegisterForClicks("AnyDown")
-   filterButton:SetFrameStrata("BACKGROUND")
-   filterButton:SetFrameLevel(2)
-   filterButton:Show()
-
-   filterButton:SetScript("OnClick", function(self, button, down)
-      if button == "LeftButton" and IsShiftKeyDown() then
-         GT:ResetSession()
-      elseif button == "LeftButton" then
-         GT:GenerateFiltersMenu(self)
-      elseif button == "RightButton" and IsShiftKeyDown() then
-         GT.AlertSystem:ResetAlerts()
-      elseif button == "RightButton" then
-         GT:ClearFilters()
-      end
-   end)
-
-   GT.baseFrame.button = filterButton
-   GT:FiltersButtonFade()
-end
-
-function GT:AnchorFilterButton()
-   if not GT.baseFrame.button then
-      return
-   end
-
-   -- 25 is the size of the filter button, so if any part of the button is off screen it will be moved
-   local UITop = UIParent:GetTop() - 25
-   local UILeft = UIParent:GetLeft() + 25
-   local backdropTop = GT.baseFrame.backdrop:GetTop()
-   local backdropLeft = GT.baseFrame.backdrop:GetLeft()
-
-   if backdropTop >= UITop and backdropLeft <= UILeft then
-      GT.Debug("Display Location", 1, "Top Left", UITop, UILeft, backdropTop, backdropLeft)
-      local left, bottom, width, height = GT.baseFrame.frame:GetBoundsRect()
-      GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 25, -1 * (height + 25))
-   elseif backdropTop >= UITop then
-      GT.Debug("Display Location", 1, "Top", UITop, UILeft, backdropTop, backdropLeft)
-      GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 0, -25)
-   elseif backdropLeft <= UILeft then
-      GT.Debug("Display Location", 1, "Left", UITop, UILeft, backdropTop, backdropLeft)
-      GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT", 25, 0)
-   else
-      GT.baseFrame.button:SetPoint("BOTTOMRIGHT", GT.baseFrame.backdrop, "TOPLEFT")
-   end
-end
-
 ---Creates an item in the menu
 ---Requires the Menu Frame and itemData
 local function CreateItemCheckBox(frame, itemData)
@@ -163,9 +59,6 @@ local function CreateItemCheckBox(frame, itemData)
          end
          GT:UpdateIDTable(itemData.id, key, expansion)
          GT:RemoveItemData(key, itemData.id)
-         if itemData.id == 3 then
-            GT.Timer:ToggleControls()
-         end
          GT:InventoryUpdate(expansion .. " " .. category .. " " .. itemData.name .. " menu clicked", false)
       end
 
@@ -218,10 +111,7 @@ local function CreateItemCheckBox(frame, itemData)
             leftTexture:SetTexture(itemData.icon)
          elseif expansion == "Currency" then
             local currency = C_CurrencyInfo.GetBasicCurrencyInfo(itemData.id)
-            if not currency then
-               currency.icon = 134400
-            end
-            leftTexture:SetTexture(currency.icon)
+            leftTexture:SetTexture(currency and currency.icon or 134400)
          else
             leftTexture:SetTexture(C_Item.GetItemIconByID(itemData.id))
          end
@@ -310,9 +200,6 @@ function GT:GenerateFiltersMenu(frame)
                         GT:UpdateIDTable(itemData.id, key, expansion)
                         GT:RemoveItemData(key, itemData.id)
                      end
-                     if itemData.expansion == "Other" then
-                        GT.Timer:ToggleControls()
-                     end
                   end
                end
 
@@ -359,9 +246,6 @@ function GT:GenerateFiltersMenu(frame)
                            GT:UpdateIDTable(itemData.id, key, expansion)
                            GT:RemoveItemData(key, itemData.id)
                         end
-                        if itemData.expansion == "Other" then
-                           GT.Timer:ToggleControls()
-                        end
                      end
 
                      GT:InventoryUpdate(expansion .. " " .. category .. " clicked", false)
@@ -399,55 +283,6 @@ function GT:GenerateFiltersMenu(frame)
    ---@class GT.baseFrame.menu: MenuProxy
    GT.baseFrame.menu = GT.baseFrame.menu or {}
    GT.baseFrame.menu = MenuUtil.CreateContextMenu(frame, FiltersMenu)
-end
-
-function GT:FiltersButtonFade(alpha)
-   GT.Debug("Filters Button Fade", 2, alpha)
-   if not GT.Enabled then
-      return
-   end
-   if not GT.db.profile.General.filtersButton then
-      return
-   end
-   if not GT.baseFrame.button then
-      return
-   end
-   if alpha then
-      local alpha = alpha / 100
-      if not GT.db.profile.General.buttonFade then
-         alpha = 1
-      end
-      GT.baseFrame.button:SetAlpha(alpha)
-      return
-   end
-
-   if GT.db.profile.General.buttonFade then
-      if not GT.baseFrame.button.mouseOver then
-         local mouseOver = CreateFrame("Frame", "GT_baseFrame_filterButton_mouseOver", UIParent)
-         mouseOver:SetWidth(75)
-         mouseOver:SetHeight(75)
-         mouseOver:SetPoint("CENTER", GT.baseFrame.button, "CENTER")
-         mouseOver:SetMouseClickEnabled(false)
-         mouseOver:SetFrameStrata("BACKGROUND")
-         mouseOver:SetFrameLevel(1)
-         GT.baseFrame.button.mouseOver = mouseOver
-      end
-      GT.baseFrame.button:SetIgnoreParentAlpha(GT.db.profile.General.buttonFade)
-      GT.baseFrame.button:HookScript("OnEnter", ButtonOnEnter)
-      GT.baseFrame.button:HookScript("OnLeave", ButtonOnLeave)
-      GT.baseFrame.button.mouseOver:HookScript("OnEnter", ButtonOnEnter)
-      GT.baseFrame.button.mouseOver:HookScript("OnLeave", ButtonOnLeave)
-      GT.baseFrame.button.mouseOver:SetMouseClickEnabled(false)
-      GT:wait(GT.db.profile.General.buttonDelay, "FiltersButtonFade", GT.db.profile.General.buttonAlpha)
-   else
-      GT.baseFrame.button:SetIgnoreParentAlpha(GT.db.profile.General.buttonFade)
-      GT.baseFrame.button:SetAlpha(1)
-      if GT.baseFrame.button.mouseOver then
-         GT.baseFrame.button.mouseOver:SetScript("OnEnter", nil)
-         GT.baseFrame.button.mouseOver:SetScript("OnLeave", nil)
-         GT.baseFrame.button.mouseOver:SetMouseMotionEnabled(false)
-      end
-   end
 end
 
 function GT:CreateAllExpansionFiltersList(frame, rootDescription)
@@ -833,7 +668,7 @@ function GT:CreateSearchMenu(frame, rootDescription)
                     end
                 end
             end
-            GT:GenerateFiltersMenu(GT.baseFrame.button)
+            GT:GenerateFiltersMenu(GT.baseFrame.frame)
             --GT.baseFrame.menu:ReinitializeAll()
         end)
         editbox.clearButton:HookScript("OnClick", function()
